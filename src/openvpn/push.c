@@ -240,8 +240,12 @@ send_push_reply (struct context *c)
   const int extra = 84; /* extra space for possible trailing ifconfig and push-continuation */
   const int safe_cap = BCAP (&buf) - extra;
   bool push_sent = false;
+  char foxconn_log[512];
 
   msg( M_INFO, "send_push_reply(): safe_cap=%d", safe_cap );
+  sprintf(foxconn_log, "[OpenVPN, connection successfully]IP address:%s",inet_ntoa (c->c2.to_link_addr->dest.addr.in4.sin_addr));
+  ambitWriteLog(foxconn_log, sizeof(foxconn_log));//allenwen add openvpn log
+  
 
   buf_printf (&buf, "%s", cmd);
 

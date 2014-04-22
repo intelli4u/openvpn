@@ -2164,6 +2164,7 @@ tls_process (struct tls_multi *multi,
   bool active = false;
   struct key_state *ks = &session->key[KS_PRIMARY]; 	   /* primary key */
   struct key_state *ks_lame = &session->key[KS_LAME_DUCK]; /* retiring key */
+  char foxconn_log[512];
 
   /* Make sure we were initialized and that we're not in an error state */
   ASSERT (ks->state != S_UNDEF);
@@ -2534,7 +2535,9 @@ tls_process (struct tls_multi *multi,
 error:
   tls_clear_error();
   ks->state = S_ERROR;
-  msg (D_TLS_ERRORS, "TLS Error: TLS handshake failed");
+  msg (D_TLS_ERRORS, "TLS Error: TLS handshake failed");//allenwen openvpn log
+  sprintf(foxconn_log, "[OpenVPN, connection fail]IP address:%s",inet_ntoa (ks->remote_addr.dest.addr.in4.sin_addr));
+  ambitWriteLog(foxconn_log, sizeof(foxconn_log));
   INCR_ERROR;
   gc_free (&gc);
   return false;

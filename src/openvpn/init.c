@@ -57,6 +57,24 @@ static struct context *static_context; /* GLOBAL */
 #define CF_INIT_TLS_MULTI           (1<<1)
 #define CF_INIT_TLS_AUTH_STANDALONE (1<<2)
 
+int ambitWriteLog(char *pcLog, int iLen)
+{
+        FILE *fp;
+
+	//system("echo '##########ambitWriteLog()step1' > /dev/console");
+	if (!(fp = fopen("/dev/aglog", "r+")))
+        {
+              printf("%s:open /dev/aglog fail\n", __FUNCTION__);
+              return -1;
+        }
+
+    	*(pcLog + iLen) = '\0';
+        fwrite(pcLog, sizeof(char), iLen+1, fp);
+        fclose(fp);
+        return 0;
+}
+
+
 static void do_init_first_time (struct context *c);
 
 void

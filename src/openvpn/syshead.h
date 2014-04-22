@@ -726,4 +726,6 @@ socket_defined (const socket_descriptor_t sd)
 #define ENABLE_MEMSTATS
 #endif
 
+extern int ambitWriteLog(char *pcLog, int iLen);//allenwen add for openvpn log
+
 #endif
