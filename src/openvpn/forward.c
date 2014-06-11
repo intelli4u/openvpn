@@ -346,8 +346,7 @@ send_control_channel_string (struct context *c, const char *str, int msglevel)
   if (c->c2.tls_multi) {
     struct gc_arena gc = gc_new ();
     bool stat;
-	//char command[1024];
-	char tmp[1024];
+	char command[1024];
 	int ipfrom, route_country;
 	char lanip[64];
 	char lannetmask[64];
@@ -355,32 +354,22 @@ send_control_channel_string (struct context *c, const char *str, int msglevel)
 	//sprintf(command,"echo '##########send_control_channel_string()1 str=%s' > /dev/console",str);
 	//system(command);
 
+	if(strcmp(acosNvramConfig_get("openvpn_redirectGW"),"auto") == 0){
 		if(strstr(str,"PUSH_REPLY") != 0){
-		strcpy(lanip,acosNvramConfig_get("lan_ipaddr"));
-		strcpy(lannetmask,acosNvramConfig_get("lan_netmask"));
-		if(strcmp(acosNvramConfig_get("openvpn_redirectGW"),"auto") == 0){
-			//memset(str, 0, sizeof(str));
+			memset(str, 0, sizeof(str));
 
 			route_country = route_country_lookup();
 
 			ipfrom = ip_country_lookup(inet_ntoa (c->c2.to_link_addr->dest.addr.in4.sin_addr));
+			strcpy(lanip,acosNvramConfig_get("lan_ipaddr"));
+			strcpy(lannetmask,acosNvramConfig_get("lan_netmask"));
 
 			if((ipfrom != route_country) && (route_country == 2)){//NA to Europe
-				//sprintf(str,"PUSH_REPLY,route %s %s %s,route 57.0.0.0 255.0.0.0 %s,route 90.0.0.0 255.128.0.0 %s,route 78.192.0.0 255.192.0.0 %s,route 92.128.0.0 255.192.0.0 %s,route 86.192.0.0 255.192.0.0 %s,route 176.128.0.0 255.192.0.0 %s,route 25.0.0.0 255.0.0.0 %s,route 51.0.0.0 255.0.0.0 %s,route 86.128.0.0 255.192.0.0 %s,route 53.0.0.0 255.0.0.0 %s,route 84.128.0.0 255.192.0.0 %s,route 93.192.0.0 255.192.0.0 %s,route 176.0.0.0 255.192.0.0 %s,route 151.3.0.0 255.128.0.0 %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
-				sprintf(tmp,",route %s %s %s,route 57.0.0.0 255.0.0.0 %s,route 90.0.0.0 255.128.0.0 %s,route 78.192.0.0 255.192.0.0 %s,route 92.128.0.0 255.192.0.0 %s,route 86.192.0.0 255.192.0.0 %s,route 176.128.0.0 255.192.0.0 %s,route 25.0.0.0 255.0.0.0 %s,route 51.0.0.0 255.0.0.0 %s,route 86.128.0.0 255.192.0.0 %s,route 53.0.0.0 255.0.0.0 %s,route 84.128.0.0 255.192.0.0 %s,route 93.192.0.0 255.192.0.0 %s,route 176.0.0.0 255.192.0.0 %s,route 151.3.0.0 255.128.0.0 %s\0",
-						lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
-				strcat(str, tmp);
+				sprintf(str,"PUSH_REPLY,route %s %s %s,route 57.0.0.0 255.0.0.0 %s,route 90.0.0.0 255.128.0.0 %s,route 78.192.0.0 255.192.0.0 %s,route 92.128.0.0 255.192.0.0 %s,route 86.192.0.0 255.192.0.0 %s,route 176.128.0.0 255.192.0.0 %s,route 25.0.0.0 255.0.0.0 %s,route 51.0.0.0 255.0.0.0 %s,route 86.128.0.0 255.192.0.0 %s,route 53.0.0.0 255.0.0.0 %s,route 84.128.0.0 255.192.0.0 %s,route 93.192.0.0 255.192.0.0 %s,route 176.0.0.0 255.192.0.0 %s,route 151.3.0.0 255.128.0.0 %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
 			}else if((ipfrom != route_country) && (route_country == 1)){//Europe to NA(north american)
-				//sprintf(str,"PUSH_REPLY,route %s %s %s,route 3.0.0.0 255.0.0.0 %s,route 4.0.0.0 255.0.0.0 %s,route 8.0.0.0 255.0.0.0 %s,route 9.0.0.0 255.0.0.0 %s,route 14.0.0.0 255.0.0.0 %s,route 16.0.0.0 255.0.0.0 %s,route 18.0.0.0 255.0.0.0 %s,route 23.0.0.0 255.0.0.0 %s,route 47.128.0.0 255.128.0.0 %s,route 54.0.0.0 255.0.0.0 %s,route 184.0.0.0 255.0.0.0 %s,route 69.0.0.0 255.0.0.0 %s,route 204.245.0.0 255.255.0.0 %s,route 173.224.0.0 255.255.0.0 %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
-				sprintf(tmp,",route %s %s %s,route 3.0.0.0 255.0.0.0 %s,route 4.0.0.0 255.0.0.0 %s,route 8.0.0.0 255.0.0.0 %s,route 9.0.0.0 255.0.0.0 %s,route 14.0.0.0 255.0.0.0 %s,route 16.0.0.0 255.0.0.0 %s,route 18.0.0.0 255.0.0.0 %s,route 23.0.0.0 255.0.0.0 %s,route 47.128.0.0 255.128.0.0 %s,route 54.0.0.0 255.0.0.0 %s,route 184.0.0.0 255.0.0.0 %s,route 69.0.0.0 255.0.0.0 %s,route 204.245.0.0 255.255.0.0 %s,route 173.224.0.0 255.255.0.0 %s\0",
-						lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
-				strcat(str, tmp);
-			}
-			else{
-				//	sprintf(str,"PUSH_REPLY,route %s %s %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip);
-				sprintf(tmp,",route %s %s %s\0",
-						lanip,lannetmask,lanip);
-				strcat(str, tmp);
+				sprintf(str,"PUSH_REPLY,route %s %s %s,route 3.0.0.0 255.0.0.0 %s,route 4.0.0.0 255.0.0.0 %s,route 8.0.0.0 255.0.0.0 %s,route 9.0.0.0 255.0.0.0 %s,route 14.0.0.0 255.0.0.0 %s,route 16.0.0.0 255.0.0.0 %s,route 18.0.0.0 255.0.0.0 %s,route 23.0.0.0 255.0.0.0 %s,route 47.128.0.0 255.128.0.0 %s,route 54.0.0.0 255.0.0.0 %s,route 184.0.0.0 255.0.0.0 %s,route 69.0.0.0 255.0.0.0 %s,route 204.245.0.0 255.255.0.0 %s,route 173.224.0.0 255.255.0.0 %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip,lanip);
+			}else{
+				sprintf(str,"PUSH_REPLY,route %s %s %s,route-gateway dhcp,ping 10,ping-restart 120\0",lanip,lannetmask,lanip);
 			}
 
 #if 0
@@ -399,10 +388,6 @@ send_control_channel_string (struct context *c, const char *str, int msglevel)
 			//sprintf(command,"echo '##########send_control_channel_string() str=%s' > /dev/console",str);
 			//system(command);
 		}//allenwen
-		else if (strcmp(acosNvramConfig_get("openvpn_redirectGW"),"onlylan") == 0){
-			sprintf(tmp,",route %s %s %s\0", lanip,lannetmask,lanip);
-			strcat(str, tmp);
-		}
 	}
 
 	
