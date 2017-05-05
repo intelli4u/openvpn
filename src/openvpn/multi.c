@@ -753,11 +753,13 @@ multi_print_status (struct multi_context *m, struct status_output *so, const int
 
 	      if (!mi->halt)
 		{
-		  status_printf (so, "%s,%s," counter_format "," counter_format ",%s",
+		  status_printf (so, "%s,%s," counter_format "," counter_format ",0x%x,0x%x,%s",
 				 tls_common_name (mi->context.c2.tls_multi, false),
 				 mroute_addr_print (&mi->real, &gc),
 				 mi->context.c2.link_read_bytes,
 				 mi->context.c2.link_write_bytes,
+				 mi->reporting_addr,
+				 mi->created,
 				 time_string (mi->created, 0, false, &gc));
 		}
 	      gc_free (&gc);
@@ -2086,6 +2088,20 @@ multi_process_post (struct multi_context *m, struct multi_instance *mi, const un
   return ret;
 }
 
+static inline bool
+mroute_is_bcast (struct mroute_addr *da, in_addr_t bcast_addr)
+{
+	in_addr_t dest_addr;
+	if ((da->type & MR_ADDR_MASK) == MR_ADDR_IPV4)
+	{
+		dest_addr = ntohl(*(in_addr_t*)da->addr);
+		if (dest_addr == 0xffffffff)
+			return true;
+		if (dest_addr == bcast_addr) /* e.g. 192.168.2.255/24 */
+			return true;
+	}
+	return false;
+}
 /*
  * Process packets in the TCP/UDP socket -> TUN/TAP interface direction,
  * i.e. client -> server direction.
@@ -2144,6 +2160,8 @@ multi_process_incoming_link (struct multi_context *m, struct multi_instance *ins
 							      NULL,
 							      &c->c2.to_tun,
 							      DEV_TYPE_TUN);
+		  if (mroute_is_bcast(&dest, m->top.c1.tuntap->local |(~m->top.c1.tuntap->remote_netmask)))
+			   mroute_flags |= MROUTE_EXTRACT_MCAST;
 
 	      /* drop packet if extract failed */
 	      if (!(mroute_flags & MROUTE_EXTRACT_SUCCEEDED))
@@ -2336,6 +2354,8 @@ multi_process_incoming_tun (struct multi_context *m, const unsigned int mpp_flag
 						      NULL,
 						      &m->top.c2.buf,
 						      dev_type);
+	  if (mroute_is_bcast(&dest, m->top.c1.tuntap->local |(~m->top.c1.tuntap->remote_netmask)))
+		   mroute_flags |= MROUTE_EXTRACT_MCAST;
 
       if (mroute_flags & MROUTE_EXTRACT_SUCCEEDED)
 	{
@@ -2585,9 +2605,10 @@ multi_process_signal (struct multi_context *m)
 {
   if (m->top.sig->signal_received == SIGUSR2)
     {
-      struct status_output *so = status_open (NULL, 0, M_INFO, NULL, 0);
-      multi_print_status (m, so, m->status_file_version);
-      status_close (so);
+      //struct status_output *so = status_open (NULL, 0, M_INFO, NULL, 0);
+      //multi_print_status (m, so, m->status_file_version);
+      //status_close (so);
+      multi_print_status (m, m->top.c1.status_output, m->status_file_version);
       m->top.sig->signal_received = 0;
       return false;
     }
