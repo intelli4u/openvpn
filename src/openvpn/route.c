@@ -41,6 +41,7 @@
 #include "manage.h"
 #include "win32.h"
 #include "options.h"
+#include "status.h"
 
 #include "memdbg.h"
 
@@ -1530,9 +1531,7 @@ add_route(struct route_ipv4 *r,
     struct gc_arena gc;
     struct argv argv = argv_new();
     const char *network;
-#if !defined(ENABLE_IPROUTE) && !defined(TARGET_AIX)
     const char *netmask;
-#endif
     const char *gateway;
     bool status = false;
     int is_local_route;
@@ -1545,9 +1544,7 @@ add_route(struct route_ipv4 *r,
     gc_init(&gc);
 
     network = print_in_addr_t(r->network, 0, &gc);
-#if !defined(ENABLE_IPROUTE) && !defined(TARGET_AIX)
     netmask = print_in_addr_t(r->netmask, 0, &gc);
-#endif
     gateway = print_in_addr_t(r->gateway, 0, &gc);
 
     is_local_route = local_route(r->network, r->netmask, r->gateway, rgi);
@@ -1555,6 +1552,14 @@ add_route(struct route_ipv4 *r,
     {
         goto done;
     }
+
+    //Sam.B      2013/10/31
+    if(current_route(htonl(r->network), htonl(r->netmask))) {
+        msg(M_WARN, "Ignore conflicted routing rule: %s %s", network, netmask);
+        update_nvram_status(ROUTE_CONFLICTED);
+        goto done;
+    }
+    //Sam.E      2013/10/31
 
 #if defined(TARGET_LINUX)
 #ifdef ENABLE_IPROUTE
